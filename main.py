@@ -9,9 +9,8 @@ from writer import save_waiting_processes_at_time_dic, set_output_folder, set_si
 
 SIM_TIME = 10800
 DELIMITER_FOR_SIMULATION_OUTPUT = ""
-NUM_SIMULATIONS = 1
+NUM_SIMULATIONS = 10
 OUTPUT_FOLDER = "output"
-STRATEGY = "EDD"
 
 MACHINE_CAPACITY_ONE = 1
 MACHINE_CAPACITY_TWO = 1
@@ -67,40 +66,38 @@ OCCUPANCY_RATE = setup_occupancy_rate()
 class BurgerStation:
     def __init__(self, env):
         self.env = env
-        self.machine_one = simpy.PriorityResource(env, capacity=MACHINE_CAPACITY_ONE)
-        self.machine_two = simpy.PriorityResource(env, capacity=MACHINE_CAPACITY_TWO)
-        self.machine_three = simpy.PriorityResource(env, capacity=MACHINE_CAPACITY_THREE)
-        self.machine_four = simpy.PriorityResource(env, capacity=MACHINE_CAPACITY_FOUR)
-        self.machine_five = simpy.PriorityResource(env, capacity=MACHINE_CAPACITY_FIVE)
+        self.machine_one = simpy.Resource(env, capacity=MACHINE_CAPACITY_ONE)
+        self.machine_two = simpy.Resource(env, capacity=MACHINE_CAPACITY_TWO)
+        self.machine_three = simpy.Resource(env, capacity=MACHINE_CAPACITY_THREE)
+        self.machine_four = simpy.Resource(env, capacity=MACHINE_CAPACITY_FOUR)
+        self.machine_five = simpy.Resource(env, capacity=MACHINE_CAPACITY_FIVE)
 
     def main_process(self, order_of_burger):
         for machine in order_of_burger.burger.burger_machines:
             if machine[0] == "M1":
-                yield self.env.process(self.machine_one_process(machine, order_of_burger.pickup_time))
+                yield self.env.process(self.machine_one_process(machine))
             elif machine[0] == "M2":
-                yield self.env.process(self.machine_two_process(machine, order_of_burger.pickup_time))
+                yield self.env.process(self.machine_two_process(machine))
             elif machine[0] == "M3":
-                yield self.env.process(self.machine_three_process(machine, order_of_burger.pickup_time))
+                yield self.env.process(self.machine_three_process(machine))
             elif machine[0] == "M4":
-                yield self.env.process(self.machine_four_process(machine, order_of_burger.pickup_time))
+                yield self.env.process(self.machine_four_process(machine))
             elif machine[0] == "M5":
-                yield self.env.process(self.machine_five_process(machine, order_of_burger.pickup_time))
+                yield self.env.process(self.machine_five_process(machine))
                 
         order_of_burger.throughput_time = self.env.now - order_of_burger.order_time
         add_throughput_time(order_of_burger.burger.burger_machines[0], order_of_burger.throughput_time)
          
 
-    def machine_one_process(self, machine_settings, order_of_burger_pickup_time):
+    def machine_one_process(self, machine_settings):
         global WAITING_QUEUE_TIME, LAST_QUEUE_UPDATE
-        timeout = get_waiting_time(machine_settings)
-        prio = get_priority_value_based_on_strategy(timeout, self.env.now, order_of_burger_pickup_time)
 
         if len(self.machine_one.queue) > 0:
             if LAST_QUEUE_UPDATE["M1"] is None:
                 LAST_QUEUE_UPDATE["M1"] = self.env.now
 
 
-        with self.machine_one.request(priority=prio) as request:
+        with self.machine_one.request() as request:
             yield request  
 
             if len(self.machine_one.queue) == 0:
@@ -108,21 +105,20 @@ class BurgerStation:
                     WAITING_QUEUE_TIME["M1"] += self.env.now - LAST_QUEUE_UPDATE["M1"]
                 LAST_QUEUE_UPDATE["M1"] = None
 
+            timeout = get_waiting_time(machine_settings)
             OCCUPANCY_RATE["M1"] += timeout
             yield self.env.timeout(timeout)
 
 
-    def machine_two_process(self, machine_settings, order_of_burger_pickup_time):
+    def machine_two_process(self, machine_settings):
         global WAITING_QUEUE_TIME, LAST_QUEUE_UPDATE
-        timeout = get_waiting_time(machine_settings)
-        prio = get_priority_value_based_on_strategy(timeout, self.env.now, order_of_burger_pickup_time)
 
         if len(self.machine_two.queue) > 0:
             if LAST_QUEUE_UPDATE["M2"] is None:
                 LAST_QUEUE_UPDATE["M2"] = self.env.now
 
 
-        with self.machine_two.request(priority=prio) as request:
+        with self.machine_two.request() as request:
             yield request  
 
             if len(self.machine_two.queue) == 0:
@@ -130,21 +126,20 @@ class BurgerStation:
                     WAITING_QUEUE_TIME["M2"] += self.env.now - LAST_QUEUE_UPDATE["M2"]
                 LAST_QUEUE_UPDATE["M2"] = None
 
+            timeout = get_waiting_time(machine_settings)
             OCCUPANCY_RATE["M2"] += timeout
             yield self.env.timeout(timeout)
 
 
-    def machine_three_process(self, machine_settings, order_of_burger_pickup_time):
+    def machine_three_process(self, machine_settings):
         global WAITING_QUEUE_TIME, LAST_QUEUE_UPDATE
-        timeout = get_waiting_time(machine_settings)
-        prio = get_priority_value_based_on_strategy(timeout, self.env.now, order_of_burger_pickup_time)
 
         if len(self.machine_three.queue) > 0:
             if LAST_QUEUE_UPDATE["M3"] is None:
                 LAST_QUEUE_UPDATE["M3"] = self.env.now
 
 
-        with self.machine_three.request(priority=prio) as request:
+        with self.machine_three.request() as request:
             yield request  
 
             if len(self.machine_three.queue) == 0:
@@ -152,21 +147,20 @@ class BurgerStation:
                     WAITING_QUEUE_TIME["M3"] += self.env.now - LAST_QUEUE_UPDATE["M3"]
                 LAST_QUEUE_UPDATE["M3"] = None
 
+            timeout = get_waiting_time(machine_settings)
             OCCUPANCY_RATE["M3"] += timeout
             yield self.env.timeout(timeout)
 
 
-    def machine_four_process(self, machine_settings, order_of_burger_pickup_time):
+    def machine_four_process(self, machine_settings):
         global WAITING_QUEUE_TIME, LAST_QUEUE_UPDATE
-        timeout = get_waiting_time(machine_settings)
-        prio = get_priority_value_based_on_strategy(timeout, self.env.now, order_of_burger_pickup_time)
 
         if len(self.machine_four.queue) > 0:
             if LAST_QUEUE_UPDATE["M4"] is None:
                 LAST_QUEUE_UPDATE["M4"] = self.env.now
 
 
-        with self.machine_four.request(priority=prio) as request:
+        with self.machine_four.request() as request:
             yield request  
 
             if len(self.machine_four.queue) == 0:
@@ -174,21 +168,20 @@ class BurgerStation:
                     WAITING_QUEUE_TIME["M4"] += self.env.now - LAST_QUEUE_UPDATE["M4"]
                 LAST_QUEUE_UPDATE["M4"] = None
 
+            timeout = get_waiting_time(machine_settings)
             OCCUPANCY_RATE["M4"] += timeout
             yield self.env.timeout(timeout)
 
 
-    def machine_five_process(self, machine_settings, order_of_burger_pickup_time):
+    def machine_five_process(self, machine_settings):
         global WAITING_QUEUE_TIME, LAST_QUEUE_UPDATE
-        timeout = get_waiting_time(machine_settings)
-        prio = get_priority_value_based_on_strategy(timeout, self.env.now, order_of_burger_pickup_time)
 
         if len(self.machine_five.queue) > 0:
             if LAST_QUEUE_UPDATE["M5"] is None:
                 LAST_QUEUE_UPDATE["M5"] = self.env.now
 
 
-        with self.machine_five.request(priority=prio) as request:
+        with self.machine_five.request() as request:
             yield request  
 
             if len(self.machine_five.queue) == 0:
@@ -196,6 +189,7 @@ class BurgerStation:
                     WAITING_QUEUE_TIME["M5"] += self.env.now - LAST_QUEUE_UPDATE["M5"]
                 LAST_QUEUE_UPDATE["M5"] = None
 
+            timeout = get_waiting_time(machine_settings)
             OCCUPANCY_RATE["M5"] += timeout
             yield self.env.timeout(timeout)
 
@@ -209,14 +203,6 @@ def get_waiting_time(machine_setting):
         return random.uniform(machine_setting[2], machine_setting[3])
     else:
         raise ValueError(f"Unbekannte Verteilung: {machine_setting[1]}")
-
-def print_stats(res):
-    print(f'{res.count} of {res.capacity} slots are allocated.')
-    print(f'  Users: {res.users}')
-    print(f'  Queued events: {res.queue}')
-
-    for item in res.users:
-        print(item.__dict__)
 
 def add_throughput_time(burger_type, throughput_time):
     if burger_type not in BURGER_THROUGHPUT_TIMES:
@@ -273,25 +259,6 @@ def collecting_throughput_times():
     for key, value in BURGER_THROUGHPUT_TIMES.items():
         TOTAL_BURGER_THROUGHPUT_TIMES[key].extend(value)
 
-def get_priority_value_based_on_strategy(value, timestamp, earliest_due_date):
-    if STRATEGY == "FIFO":
-        return timestamp
-
-    if STRATEGY == "LIFO":
-        return -timestamp
-
-    if STRATEGY == "SPT":
-        return value
-
-    if STRATEGY == "LPT":
-        return -value
-
-    if STRATEGY == "RANDOM":
-        return random.random()
-
-    if STRATEGY == "EDD":
-        return earliest_due_date
-
 
 if __name__ == '__main__':
     set_output_folder(OUTPUT_FOLDER)
@@ -305,10 +272,7 @@ if __name__ == '__main__':
         env.process(setup(env))
 
         env.run()
-
-        analyze_waiting_times()
-        analyze_throughput_times()
-
+        
         save_waiting_processes_at_time_dic(os.path.join(simulation_folder, "WAITING_QUEUE_TIME.csv"), WAITING_QUEUE_TIME, False)
         save_waiting_processes_at_time_dic(os.path.join(simulation_folder, "BURGER_THROUGHPUT_TIMES.csv"), BURGER_THROUGHPUT_TIMES, True)
 
