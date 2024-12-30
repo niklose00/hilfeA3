@@ -1,4 +1,7 @@
 from random import choice
+import random
+
+from numpy.random import Generator
 
 
 def get_type_one():
@@ -42,12 +45,18 @@ def get_type_four():
     ]
 
 
+
 methods = [get_type_one(), get_type_two(), get_type_three(), get_type_four()]
 
 
-def get_burger_type_random_choice():
-    return choice(methods)
+def get_burger_type_random_choice(rng: Generator):
+    choice = rng.choice([0,1,2,3])
+    return methods[choice]
+    
 
 
-if __name__ == '__main__':
-    print(get_burger_type_random_choice())
+# if __name__ == '__main__':
+#     BURGER_TYPE_SEED = 12345
+#     rng_burger_types = default_rng(BURGER_TYPE_SEED)
+#     for i in range(10):  # 10 Iterationen
+#         get_burger_type_random_choice(rng_burger_types)
